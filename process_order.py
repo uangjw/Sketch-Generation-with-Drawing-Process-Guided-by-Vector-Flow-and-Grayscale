@@ -17,14 +17,14 @@ from deblue import deblue
 from quicksort import *
 
 # args
-input_path = './input/your file'
+input_path = './input/3.jpg'
 output_path = './output' 
 
 np.random.seed(1)
 n =  10                 # Quantization order
 period = 5              # line period
 direction =  10         # num of dir
-Freq = 100              # save every（freq) lines drawn
+Freq = 500              # save every（freq) lines drawn
 deepen =  1             # for edge
 transTone = False       # for Tone8
 kernel_radius = 3       # for ETF
@@ -145,15 +145,22 @@ if __name__ == '__main__':
 
                             # length = end - begin
                             
-                            begin -= 2*period
-                            end += 2*period
+                            # 解决区域之间不融合问题
+                            # begin -= 2*period
+                            # end += 2*period
+
+                            stroke_temp['importance'] = (255-stroke_temp['grayscale'])*torch.sum(gradient_norm[y:y+period,interval[0]+2*period:interval[1]+2*period]).numpy()
+
+                            extend_len = stroke_temp['grayscale'] / 255 * period + period
+                            begin -= int(extend_len)
+                            end += int(extend_len)
 
                             length = end - begin
                             stroke_temp['begin'] = begin
                             stroke_temp['end'] = end
                             stroke_temp['row'] = y-int(period/2)
                             #print(gradient_norm[y,interval[0]+2*period:interval[1]+2*period])
-                            stroke_temp['importance'] = (255-stroke_temp['grayscale'])*torch.sum(gradient_norm[y:y+period,interval[0]+2*period:interval[1]+2*period]).numpy()
+                            
 
                             stroke_sequence.append(stroke_temp.copy())
                             # newline = Getline(distribution=distribution, length=length)
@@ -311,9 +318,9 @@ if __name__ == '__main__':
     now_ = cv2.imread(output_path + "/draw.jpg", cv2.IMREAD_GRAYSCALE)
     result = res_cross= np.float32(now_)
 
-    result[1:,1:] = np.uint8(edge[:-1,:-1] * res_cross[1:,1:]/255)
-    result[0] = np.uint8(edge[0] * res_cross[0]/255)
-    result[:,0] = np.uint8(edge[:,0] * res_cross[:,0]/255)
+    # result[1:,1:] = np.uint8(edge[:-1,:-1] * res_cross[1:,1:]/255)
+    # result[0] = np.uint8(edge[0] * res_cross[0]/255)
+    # result[:,0] = np.uint8(edge[:,0] * res_cross[:,0]/255)
     result = edge*res_cross/255
     result=np.uint8(result)  
 
